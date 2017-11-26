@@ -38,7 +38,7 @@ int main()
 	sbp.sec_res=1;
 	sbp.sec_mapa_bits_area_nodos_i=1;
 	sbp.sec_mapa_bits_bloques=6;
-	sbp.sec_tabla_nodos_i=3
+	sbp.sec_tabla_nodos_i=3;
 	sbp.sec_log_particion=43100;
 	sbp.sec_x_bloque=2;
 	sbp.heads=8;
