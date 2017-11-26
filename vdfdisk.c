@@ -25,7 +25,7 @@ int main() {
 		mbr.bootstrap_code[i] = 0;
 	}
 
-	mbr.signature = 0x55AA;
+	mbr.signature = 0xAA55;
 
 	mbr.partition[0].drive_status = 128 & 0xFF;
 	mbr.partition[0].chs_begin[0]=0; // Superficie
