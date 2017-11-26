@@ -27,15 +27,15 @@ int main(int argc,char *argv[]) {
 	int i,j,r;
 	unsigned char c;
 
-	if(argc==1) {
-        log_to_phys(atoi(argv[0]));	
+	if(argc==2) {
+        log_to_phys(atoi(argv[1]));
 		drive=0;
 		if(drive<0 || drive> 3 || cilindro>CYLINDERS || superficie > HEADS || secfis > SECTORS || cilindro<0 || superficie<0 || secfis<1) {
 			fprintf(stderr,"Posición invalida\n");
 			exit(1);
 		}
 		printf("Desplegando de disco%d.vd Cil=%d, Sup=%d, Sec=%d\n",drive,cilindro,superficie,secfis);
-		
+
 	} else {
 		fprintf(stderr,"Error en los argumentos\n");
 		exit(1);

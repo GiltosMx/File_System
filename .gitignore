@@ -5,3 +5,4 @@ vdisk.o
 disco0.vd
 vdformat
 logToPhys
+dumpseclog
