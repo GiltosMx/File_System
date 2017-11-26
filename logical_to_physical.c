@@ -12,18 +12,18 @@
 #define SLAD 11
 
 struct SECBOOTPART {
-	char jump[4];						
+	char jump[4];
 	char nombre_particion[8];
-	unsigned short sec_inicpart;		
-	unsigned char sec_res;		
+	unsigned short sec_inicpart;
+	unsigned char sec_res;
 	unsigned char sec_mapa_bits_area_nodos_i;
-	unsigned char sec_mapa_bits_bloques;	
+	unsigned char sec_mapa_bits_bloques;
 	unsigned short sec_tabla_nodos_i;
-	unsigned int sec_log_particion;		
-	unsigned char sec_x_bloque;			
-	unsigned char heads;				
-	unsigned char cyls;				
-	unsigned char secfis;				
+	unsigned int sec_log_particion;
+	unsigned char sec_x_bloque;
+	unsigned char heads;
+	unsigned char cyls;
+	unsigned char secfis;
 	char bootcode[484];
 };
 
@@ -62,21 +62,26 @@ int writeblock(int nbloque,char *buffer) {
 	struct SECBOOTPART sbp;
 	returnValue = vdreadsector(0, 0, 0, 2, 1, (char*) &sbp);
 
+	if(returnValue == -1)
+		return returnValue;
+
 	for(i=0;i<sbp.sec_x_bloque;i++) {
 		returnValue = vdwriteseclog((SLAD + ((nbloque-1)*2))+i,buffer);
 		buffer+=512;
 	}
+	return returnValue;
 }
 
-int main(){
-
-	char buffer[512];
-	strcpy(buffer,"LEEME Y ESCRIBEME ESTA");
-	writeblock(1,buffer);
-
-	char buffer2[512];
-	readblock(1,buffer2);
-
-	printf("buffer : %s \n",buffer2);
-	return 0;
-}
+// int main(){
+//
+// 	unsigned char buffer[512*2];
+// 	strcpy(buffer,"LEEME Y ESCRIBEME ESTA");
+// 	printf("writeblock: %d\n",writeblock(1,buffer));
+//
+// 	unsigned char buffer2[512*2];
+//
+// 	printf("readblock: %d\n",readblock(1,buffer2));
+//
+// 	printf("buffer2 read: %s \n",buffer2);
+// 	return 0;
+// }
