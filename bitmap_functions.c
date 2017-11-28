@@ -147,7 +147,7 @@ int isblockfree(int block){
 }
 
 int nextfreeblock(){
-	int i, j = 0;
+	int i = 0, j = 0;
 	struct SECBOOTPART sbp;
 	unsigned char mapa_bits_bloques = 0;
 
@@ -162,7 +162,12 @@ int nextfreeblock(){
 	while(blocksmap[i] == 0xFF && i < sbp.sec_mapa_bits_bloques * 512)
 	 	i++;
 
-	// Si no llegue al final del mapa de bits, quiere decir que aun
+	// Si estamos en el primer byte, evitar que se asigne el bit del bloque 0
+	// porque se inicia siempre en el bloque 1
+	if (i == 0)
+		j = 1;
+
+	// Si no llega al final del mapa de bits, quiere decir que aun
 	// hay bloques libres
 	if(i < sbp.sec_mapa_bits_bloques * 512) {
 		while(blocksmap[i] & (1<<j) && j < 8)
@@ -230,12 +235,13 @@ int main(int argc, char const *argv[]) {
 	// int inode = nextfreeinode();
 	// printf("Next free inode: %d\n", inode);
 
-	// int block = nextfreeblock();
-	// printf("Next free block: %d\n", block);
+	unassignblock(1);
+	
+	int block = nextfreeblock();
+	printf("Next free block: %d\n", block);
 
+	// assignblock(1);
 
-	// assignblock(block);
-	unassignblock(72);
 
 	// if(isblockfree(1))
 	// 	printf("Block %d is free\n", 1);
