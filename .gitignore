@@ -1,8 +1,8 @@
 createvd
 dumpsec
 vdfdisk
-vdisk.o
 disco0.vd
 vdformat
 logToPhys
 dumpseclog
+bitmap_functions

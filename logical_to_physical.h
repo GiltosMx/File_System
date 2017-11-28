@@ -1,3 +1,6 @@
+#ifndef _LOGTOPHYS_H_
+#define _LOGTOPHYS_H_
+
 #include "vdisk.h"
 #include <stdio.h>
 #include <string.h>
@@ -32,3 +35,5 @@ int vdreadseclog(int nseclog, char *buffer);
 int vdwriteseclog(int nseclog, char *buffer);
 int readblock(int nbloque,char *buffer);
 int writeblock(int nbloque,char *buffer);
+
+#endif
