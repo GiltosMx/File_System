@@ -9,13 +9,27 @@ void checkSecboot(struct SECBOOTPART* sbp) {
 	}
 }
 
-unsigned char checkiNodesMap(struct SECBOOTPART* sbp, char inodesmap[512]){
+unsigned char checkiNodesMap(struct SECBOOTPART* sbp, unsigned char inodesmap[512]){
 	unsigned char mapa_bits_nodos_i = sbp->sec_inicpart + sbp->sec_res;
 	// Ese mapa está en memoria
 	if(!vdreadseclog(mapa_bits_nodos_i,inodesmap)) {
 	    printf("NO ESTA EN MEMORIA EL MAPA DE BITS NODOS I\n");
 	}
 	return mapa_bits_nodos_i;
+}
+
+unsigned char checkBlocksMap(struct SECBOOTPART* sbp, unsigned char blocksmap[]){
+	unsigned char mapa_bits_bloques = sbp->sec_inicpart + sbp->sec_res +
+	sbp->sec_mapa_bits_area_nodos_i;
+	int i = 0;
+
+	// Cargar todos los sectores que corresponden al mapa de bits
+	for (i = 0; i < sbp->sec_mapa_bits_bloques; i++) {
+		if(!vdreadseclog(mapa_bits_bloques+i, blocksmap + (i * 512) ) ) {
+			printf("NO ESTA EN MEMORIA EL MAPA DE BITS DE BLOQUES\n");
+		}
+	}
+	return mapa_bits_bloques;
 }
 
 //Usando el mapa de bits, determinar si un nodo i, está libre u ocupado.
@@ -52,9 +66,6 @@ int nextfreeinode() {
 	// Usamos la información del sector de boot de la partición para
 	// determinar en que sector inicia el mapa de bits de nodos i
 	checkiNodesMap(&sbp, inodesmap);
-
-
-	printf("sbp.sec_mapa_bits_area_nodos_i: %d\n", sbp.sec_mapa_bits_area_nodos_i);
 
 	// Recorrer byte por byte mientras sea 0xFF sigo recorriendo
 	while(inodesmap[i]==0xFF && i<3)
@@ -95,7 +106,7 @@ int unassignnode(int inode){
 	int offset=inode/8;
 	int shift=inode%8;
 	struct SECBOOTPART sbp;
-	char inodesmap[512];
+	unsigned char inodesmap[512];
 	unsigned char mapa_bits_nodos_i;
 
 	// Checar si el sector de boot de la particion esta en memoria
@@ -112,19 +123,146 @@ int unassignnode(int inode){
 	return 1;
 }
 
+int isblockfree(int block){
+	// Numero de byte en el mapa
+	int offset = block/8;
+	// Numero de bit en el byte
+	int shift = block%8;
+	struct SECBOOTPART sbp;
+
+	// Determinar si tenemos el sector de boot de la particion
+	// en memoria
+	checkSecboot(&sbp);
+
+	unsigned char blocksmap[512*sbp.sec_mapa_bits_bloques];
+
+	checkBlocksMap(&sbp, blocksmap);
+
+	if(blocksmap[offset] & (1<<shift))
+		// Si el bit esta en 1, regresar 0 (no esta libre)
+		return 0;
+	else
+		// Si el bit esta en 0, regresar 1 (si esta libre)
+		return 1;
+}
+
+int nextfreeblock(){
+	int i, j = 0;
+	struct SECBOOTPART sbp;
+	unsigned char mapa_bits_bloques = 0;
+
+	checkSecboot(&sbp);
+	unsigned char blocksmap[512*sbp.sec_mapa_bits_bloques];
+
+	mapa_bits_bloques = checkBlocksMap(&sbp, blocksmap);
+
+	// Empezar desde el primer byte del mapa de bloques.
+	// Si el byte tiene todos los bits en 1, y mientras no
+	// lleguemos al final del mapa de bits
+	while(blocksmap[i] == 0xFF && i < sbp.sec_mapa_bits_bloques * 512)
+	 	i++;
+
+	// Si no llegue al final del mapa de bits, quiere decir que aun
+	// hay bloques libres
+	if(i < sbp.sec_mapa_bits_bloques * 512) {
+		while(blocksmap[i] & (1<<j) && j < 8)
+			j++;
+
+		// Retorno del numero de bloque que se encontro disponible
+		return (i * 8 + j);
+	} else
+		// Si ya no hubo bloques libres, regresar -1 = error
+		return (-1);
+}
+
+int assignblock(int block){
+	// Numero de byte en el mapa
+	int offset = block/8;
+	// Numero de bit en el byte
+	int shift = block%8;
+	int sector = 0;
+	struct SECBOOTPART sbp;
+	unsigned char mapa_bits_bloques = 0;
+
+	checkSecboot(&sbp);
+	unsigned char blocksmap[512*sbp.sec_mapa_bits_bloques];
+
+	mapa_bits_bloques = checkBlocksMap(&sbp, blocksmap);
+
+	blocksmap[offset] |= (1<<shift);
+
+	// Determinar en que numero de sector esta el bit que
+	// modificamos
+	sector = (offset/512);
+	// Escribir el sector del mapa de bits donde esta el bit
+	// que modificamos
+	vdwriteseclog(mapa_bits_bloques + sector, blocksmap + (sector*512));
+
+	return 1;
+}
+
+int unassignblock(int block){
+	// Numero de byte en el mapa
+	int offset = block/8;
+	// Numero de bit en el byte
+	int shift = block%8;
+	int sector = 0;
+	int mask = 0;
+	struct SECBOOTPART sbp;
+	unsigned char mapa_bits_bloques = 0;
+
+	checkSecboot(&sbp);
+	unsigned char blocksmap[512*sbp.sec_mapa_bits_bloques];
+
+	mapa_bits_bloques = checkBlocksMap(&sbp, blocksmap);
+
+	blocksmap[offset] &= (char) ~(1<<shift);
+
+	// Calcular en que sector esta el bit modificado
+	// Escribir el sector en disco
+	sector = (offset/512);
+	vdwriteseclog(mapa_bits_bloques + sector, blocksmap + (sector * 512));
+
+	return 1;
+}
+
 int main(int argc, char const *argv[]) {
-	int inode = nextfreeinode();
-	printf("Next free inode: %d\n", inode);
+	// int inode = nextfreeinode();
+	// printf("Next free inode: %d\n", inode);
 
-	assigninode(inode);
+	// int block = nextfreeblock();
+	// printf("Next free block: %d\n", block);
 
-	if(isinodefree(inode))
-		printf("Node is free\n");
 
-	unassignnode(inode);
+	// assignblock(block);
+	unassignblock(72);
 
-	if(isinodefree(inode))
-		printf("Node is free\n");
+	// if(isblockfree(1))
+	// 	printf("Block %d is free\n", 1);
+	// else
+	// 	printf("Block %d is not free\n", 1);
+
+
+
+	// int block = nextfreeblock();
+	// printf("Next free block: %d\n", block);
+	//
+	// assignblock(block);
+	//
+	// if(isblockfree(block))
+	// 	printf("Block %d is free\n", block);
+	// else
+	// 	printf("Block %d is not free\n", block);
+
+	// assigninode(inode);
+	//
+	// if(isinodefree(inode))
+	// 	printf("Node is free\n");
+	//
+	// unassignnode(inode);
+	//
+	// if(isinodefree(inode))
+	// 	printf("Node is free\n");
 
 	return 0;
 }
