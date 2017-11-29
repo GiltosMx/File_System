@@ -245,7 +245,7 @@ unsigned int datetoint(struct DATE date) {
 	val|=date.min;
 	val<<=6;
 	val|=date.sec;
-	
+
 	return(val);
 }
 
@@ -264,13 +264,12 @@ int inttodate(struct DATE *date,unsigned int val) {
 	return(1);
 }
 
-
-// Obtiene la fecha y hora actual del sistema y la 
+// Obtiene la fecha y hora actual del sistema y la
 // empaqueta en un entero de 32 bits
 unsigned int currdatetimetoint() {
 	struct tm *tm_ptr;
 	time_t the_time;
-	
+
 	struct DATE now;
 
 	// Llamada al sistema para obtener la fecha/hora actual
@@ -287,46 +286,4 @@ unsigned int currdatetimetoint() {
 	now.sec=tm_ptr->tm_sec;
 	// Convertirlo a un entero de 32 bits y regresar el resultado
 	return(datetoint(now));
-}
-
-int main(int argc, char const *argv[]) {
-	// int inode = nextfreeinode();
-	// printf("Next free inode: %d\n", inode);
-
-	unassignblock(1);
-	
-	int block = nextfreeblock();
-	printf("Next free block: %d\n", block);
-
-	// assignblock(1);
-
-
-	// if(isblockfree(1))
-	// 	printf("Block %d is free\n", 1);
-	// else
-	// 	printf("Block %d is not free\n", 1);
-
-
-
-	// int block = nextfreeblock();
-	// printf("Next free block: %d\n", block);
-	//
-	// assignblock(block);
-	//
-	// if(isblockfree(block))
-	// 	printf("Block %d is free\n", block);
-	// else
-	// 	printf("Block %d is not free\n", block);
-
-	// assigninode(inode);
-	//
-	// if(isinodefree(inode))
-	// 	printf("Node is free\n");
-	//
-	// unassignnode(inode);
-	//
-	// if(isinodefree(inode))
-	// 	printf("Node is free\n");
-
-	return 0;
 }

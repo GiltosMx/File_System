@@ -28,5 +28,8 @@ int isblockfree(int block);
 int nextfreeblock();
 int assignblock(int block);
 int unassignblock(int block);
+unsigned int datetoint(struct DATE date);
+int inttodate(struct DATE *date,unsigned int val);
+unsigned int currdatetimetoint();
 
 #endif
