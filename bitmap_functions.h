@@ -1,0 +1,22 @@
+#ifndef _BITMAPFUNCS_H_
+#define _BITMAPFUNCS_H_
+
+#include "logical_to_physical.h"
+#include <stdio.h>
+#include <string.h>
+
+void checkSecboot(struct SECBOOTPART* sbp);
+unsigned char checkiNodesMap(struct SECBOOTPART* sbp,
+                             unsigned char inodesmap[512]);
+unsigned char checkBlocksMap(struct SECBOOTPART* sbp,
+                             unsigned char blocksmap[]);
+int isinodefree(int inode);
+int nextfreeinode();
+int assigninode(int inode);
+int unassignnode(int inode);
+int isblockfree(int block);
+int nextfreeblock();
+int assignblock(int block);
+int unassignblock(int block);
+
+#endif
