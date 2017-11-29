@@ -4,6 +4,16 @@
 #include "logical_to_physical.h"
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+
+struct DATE {
+	int year;
+	int month;
+	int day;
+	int hour;
+	int min;
+	int sec;
+};
 
 void checkSecboot(struct SECBOOTPART* sbp);
 unsigned char checkiNodesMap(struct SECBOOTPART* sbp,
