@@ -38,7 +38,7 @@ int main()
 	memset(&inode_table, 0, 64 * 24);
 
 	// Escribir inode_table en los sectores logicos 8,9 y 10 de la particion
-	for (size_t i = 0; i < 3; i++) {
+	for (size_t i = 0; i < sbp.sec_tabla_nodos_i; i++) {
 		// Caben 8 nodos i por cada sector logico
 		vdwriteseclog(i + 8, (char *) &inode_table[i * 8]);
 	}

@@ -6,3 +6,4 @@ vdformat
 logToPhys
 dumpseclog
 bitmap_functions
+inodeFuncs
