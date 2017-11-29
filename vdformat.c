@@ -1,27 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include "vdisk.h"
+#include "inode_functions.h"
 
 #define CYLINDERS 200
 #define HEADS 8
 #define SECTORS 27
-
-// Esta estructura debe ser un sector y debe medir 512 bytes
-struct SECBOOTPART {
-	char jump[4];						// Instrucción JMP para transferir el ccontrol a la dirección donde está el código de boot del SO
-	char nombre_particion[8];
-	unsigned short sec_inicpart;		// 0 sectores
-	unsigned char sec_res;		// 1 sector reservado
-	unsigned char sec_mapa_bits_area_nodos_i;// 1 sector
-	unsigned char sec_mapa_bits_bloques;	// 6 sectores
-	unsigned short sec_tabla_nodos_i;	// 3 sectores, directorio raíz
-	unsigned int sec_log_particion;		// 43199 sectores
-	unsigned char sec_x_bloque;			// 2 sectores por bloque
-	unsigned char heads;				// 8 superficies
-	unsigned char cyls;				// 200 cilindros
-	unsigned char secfis;				// 27 sectores por track
-	char bootcode[484];	// Código de arranque
-};
 
 int main()
 {
@@ -48,5 +29,17 @@ int main()
 	int secfis_inicial=2;
 
 	// Escribir la estructura en el sector lógico 0 de la partición
-	vdwritesector(unidad,superficie_inicial,cilindro_inicial,secfis_inicial,1,(char *) &sbp);
+	vdwritesector(unidad,superficie_inicial,cilindro_inicial,
+				  secfis_inicial,1,(char *) &sbp);
+
+	// Arreglo de nodos i, donde solo podremos tener 24. Cada uno mide 64
+	// bytes. 512 bytes * 3 sectores / 64 bytes por nodo = 24 nodos i.
+	struct INODE inode_table[24];
+	memset(&inode_table, 0, 64 * 24);
+
+	// Escribir inode_table en los sectores logicos 8,9 y 10 de la particion
+	for (size_t i = 0; i < 3; i++) {
+		// Caben 8 nodos i por cada sector logico
+		vdwriteseclog(i + 8, (char *) &inode_table[i * 8]);
+	}
 }
