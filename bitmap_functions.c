@@ -1,4 +1,4 @@
-#include "logical_to_physical.h"
+#include "bitmap_functions.h"
 
 void checkSecboot(struct SECBOOTPART* sbp) {
 	int secboot_en_memoria = vdreadseclog(0,(char*) sbp);
@@ -229,46 +229,4 @@ int unassignblock(int block){
 	vdwriteseclog(mapa_bits_bloques + sector, blocksmap + (sector * 512));
 
 	return 1;
-}
-
-int main(int argc, char const *argv[]) {
-	// int inode = nextfreeinode();
-	// printf("Next free inode: %d\n", inode);
-
-	unassignblock(1);
-	
-	int block = nextfreeblock();
-	printf("Next free block: %d\n", block);
-
-	// assignblock(1);
-
-
-	// if(isblockfree(1))
-	// 	printf("Block %d is free\n", 1);
-	// else
-	// 	printf("Block %d is not free\n", 1);
-
-
-
-	// int block = nextfreeblock();
-	// printf("Next free block: %d\n", block);
-	//
-	// assignblock(block);
-	//
-	// if(isblockfree(block))
-	// 	printf("Block %d is free\n", block);
-	// else
-	// 	printf("Block %d is not free\n", block);
-
-	// assigninode(inode);
-	//
-	// if(isinodefree(inode))
-	// 	printf("Node is free\n");
-	//
-	// unassignnode(inode);
-	//
-	// if(isinodefree(inode))
-	// 	printf("Node is free\n");
-
-	return 0;
 }
