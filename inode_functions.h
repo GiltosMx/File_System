@@ -1,6 +1,10 @@
 #ifndef _INODEFUNCS_H_
 #define _INODEFUNCS_H_
 
+#define MAX_INODES 24
+#define MAX_FILENAMESIZE 18
+#define NUM_DIRECT_BLOCKS 10
+
 #include "bitmap_functions.h"
 #pragma pack(1)
 
@@ -21,5 +25,7 @@ struct INODE {
 
 unsigned char checkiNodesTable(struct SECBOOTPART* sbp, struct INODE inode_table[]);
 int setinode(int num, char* filename, unsigned short atribs, int uid, int gid);
+int removeinode(int num);
+int searchinode(char* filename);
 
 #endif

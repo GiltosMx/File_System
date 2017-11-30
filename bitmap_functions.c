@@ -102,7 +102,7 @@ int assigninode(int inode) {
 	return 1;
 }
 
-int unassignnode(int inode){
+int unassigninode(int inode){
 	int offset=inode/8;
 	int shift=inode%8;
 	struct SECBOOTPART sbp;

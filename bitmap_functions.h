@@ -23,7 +23,7 @@ unsigned char checkBlocksMap(struct SECBOOTPART* sbp,
 int isinodefree(int inode);
 int nextfreeinode();
 int assigninode(int inode);
-int unassignnode(int inode);
+int unassigninode(int inode);
 int isblockfree(int block);
 int nextfreeblock();
 int assignblock(int block);
