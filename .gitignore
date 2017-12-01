@@ -7,3 +7,4 @@ logToPhys
 dumpseclog
 bitmap_functions
 inodeFuncs
+fileMgmt
