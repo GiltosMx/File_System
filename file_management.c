@@ -96,6 +96,7 @@ int vdcreat(char* filename, unsigned short perms) {
     openfiles_table[i].inuse = 1; // Poner el archivo en uso
     openfiles_table[i].inode = numinode; // Nodo del archivo abierto
     openfiles_table[i].currpos = 0; // Siempre es 0 al incio
+    openfiles_table[i].openMode = -1;
 
     return i;
 }
@@ -264,28 +265,43 @@ int vdclose(int fd) {
     return 1;
 }
 
-int vdopen(char *filename,unsigned short mode) {
+int vdopen(char *filename, unsigned short mode) {
+    int numinode = 0, i = 0;
 
+    // Ver si ya existe el archivo
+    numinode = searchinode(filename);
+
+    // Si no existe
+    if(numinode == -1)
+        return (-1);
+
+    checkOpenFilesTable();
+
+    // Buscar si hay lugar en la tabla de archivos abiertos
+    i = 3;
+    while (openfiles_table[i].inuse && i < 16)
+        i++;
+
+    if (i >= 16) // Llegamos al final y no hay lugar
+        return (-1);
+
+    openfiles_table[i].inuse = 1; // Poner el archivo en uso
+    openfiles_table[i].inode = numinode; // Nodo del archivo abierto
+    openfiles_table[i].currpos = 0; // Siempre es 0 al incio
+    openfiles_table[i].openMode = mode;
+
+    return i; // Es el fd del archivo
 }
 
 int main(int argc, char const *argv[]) {
-    int fd = vdcreat("CHUCHITO_FILE2", 7);
-    printf("File in use status: %d\n",openfiles_table[fd].inuse);
-
-    char* buffer = "CHUCHITO 2, FILE VERSION!";
-    printf("%d\n",vdwrite(fd, buffer, strlen(buffer)));
-
-    vdclose(fd);
-    printf("File in use status: %d\n",openfiles_table[fd].inuse);
-
-    // printf("nextfreeblock: %d\n",nextfreeblock());
-    // printf("isblockfree: %d\n", isblockfree(5));
-
-    // char buffer[1024];
-    // readblock(4, buffer);
-    // printf("Content in block 4: %s\n", buffer);
-    // readblock(5, buffer);
-    // printf("Content in block 5: %s\n", buffer);
+    // int fd = vdcreat("CHUCHITO_FILE2", 7);
+    // printf("File in use status: %d\n",openfiles_table[fd].inuse);
+    //
+    // char* buffer = "CHUCHITO 2, FILE VERSION!";
+    // printf("%d\n",vdwrite(fd, buffer, strlen(buffer)));
+    //
+    // vdclose(fd);
+    // printf("File in use status: %d\n",openfiles_table[fd].inuse);
 
     return 0;
 }

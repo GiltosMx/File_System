@@ -10,6 +10,7 @@ struct OPENFILES {
     int currbloqueenmemoria;
     char buffer[1024];
     unsigned short buffindirect[512];
+    unsigned short openMode; // 1 read, 2 read/write
 };
 
 void checkOpenFilesTable();
