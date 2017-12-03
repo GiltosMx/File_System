@@ -74,8 +74,9 @@ int vdcreat(char* filename, unsigned short perms) {
         if(numinode == -1) {
             return (-1);
         }
-    } else
-        removeinode(numinode);
+    } else {
+        unassigninode(numinode);
+    }
 
     // Escribir el archivo en el nodo encontrado
     setinode(numinode, filename, perms, 1, 1);
@@ -106,7 +107,7 @@ int vdunlink(char * filename) {
     if (numinode == -1)
         return (-1);
 
-    return removeinode(numinode);
+    return unassigninode(numinode);
 }
 
 int vdseek(int fd, int offset, int whence) {
@@ -241,7 +242,26 @@ int vdread(int fd, char *buffer, int bytes) {
 }
 
 int vdclose(int fd) {
+    int currblock = 0;
+    unsigned short* currptr;
+    checkOpenFilesTable();
 
+    // Si el archivo no esta abierto
+    if (!openfiles_table[fd].inuse) {
+        return (-1);
+    }
+
+    currptr = currpostoptr(fd);
+    currblock = *currptr;
+
+    // Hay algo en el buffer que escribir
+    if (openfiles_table[fd].currpos % (512*2) != 0) {
+        writeblock(currblock, openfiles_table[fd].buffer);
+    }
+
+    openfiles_table[fd].inuse = 0;
+
+    return 1;
 }
 
 int vdopen(char *filename,unsigned short mode) {
@@ -249,6 +269,23 @@ int vdopen(char *filename,unsigned short mode) {
 }
 
 int main(int argc, char const *argv[]) {
+    int fd = vdcreat("CHUCHITO_FILE2", 7);
+    printf("File in use status: %d\n",openfiles_table[fd].inuse);
+
+    char* buffer = "CHUCHITO 2, FILE VERSION!";
+    printf("%d\n",vdwrite(fd, buffer, strlen(buffer)));
+
+    vdclose(fd);
+    printf("File in use status: %d\n",openfiles_table[fd].inuse);
+
+    // printf("nextfreeblock: %d\n",nextfreeblock());
+    // printf("isblockfree: %d\n", isblockfree(5));
+
+    // char buffer[1024];
+    // readblock(4, buffer);
+    // printf("Content in block 4: %s\n", buffer);
+    // readblock(5, buffer);
+    // printf("Content in block 5: %s\n", buffer);
 
     return 0;
 }
