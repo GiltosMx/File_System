@@ -14,7 +14,7 @@ struct OPENFILES {
 };
 
 void checkOpenFilesTable();
-
+void freeInodeBlocks(int fd);
 // A partir de la posicion actual del apuntador del archivo, regresa la
 // direccion de memoria en el nodo i o en el bloque donde esta el
 // puntero del archivo

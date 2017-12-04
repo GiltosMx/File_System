@@ -1,4 +1,4 @@
-all: logToPhys.o bitmapFunctions dumpseclog inodeFuncs vdformat vdfdisk fileMgmt
+all: logToPhys.o bitmapFunctions dumpseclog inodeFuncs vdformat vdfdisk fileMgmt prueba
 
 logToPhys.o: logical_to_physical.c
 	gcc -o logToPhys.o -c logical_to_physical.c
@@ -19,4 +19,7 @@ vdformat: vdformat.c vdisk.o logToPhys.o
 	gcc -o vdformat vdformat.c vdisk.o logToPhys.o
 
 fileMgmt: file_management.c 
-	gcc -o fileMgmt file_management.c inodeFuncs.o bitmapFunctions.o logToPhys.o vdisk.o
+	gcc -o fileMgmt.o -c file_management.c
+
+prueba: prueba.c vdisk.o logToPhys.o inodeFuncs.o bitmapFunctions.o fileMgmt.o
+	 gcc -o prueba prueba.c vdisk.o logToPhys.o inodeFuncs.o bitmapFunctions.o fileMgmt.o

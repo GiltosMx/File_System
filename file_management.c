@@ -19,6 +19,22 @@ void checkOpenFilesTable() {
     }
 }
 
+void freeInodeBlocks(int currinode) {
+    checkOpenFilesTable();
+    int i = 0;
+    unsigned int fileSize = inode_table[currinode].size;
+    printf("fileSize: %u\n", fileSize);
+    // Libera los bloques directos
+    while (fileSize > 0) {
+        printf("Block to free: %d\n", inode_table[currinode].direct_blocks[i++]);
+        unassignblock(inode_table[currinode].direct_blocks[i++]);
+        if (fileSize >= 1024)
+            fileSize -= 1024;
+        else
+            fileSize = 0;
+    }
+}
+
 unsigned short *postoptr(int fd, int pos) {
     int currinode;
     unsigned short* currptr;
@@ -75,6 +91,7 @@ int vdcreat(char* filename, unsigned short perms) {
             return (-1);
         }
     } else {
+        freeInodeBlocks(numinode);
         unassigninode(numinode);
     }
 
@@ -107,6 +124,8 @@ int vdunlink(char * filename) {
     numinode = searchinode(filename);
     if (numinode == -1)
         return (-1);
+
+    freeInodeBlocks(numinode);
 
     return unassigninode(numinode);
 }
@@ -235,22 +254,92 @@ int vdwrite(int fd, char *buffer, int bytes) {
         if (openfiles_table[fd].currpos % (512*2) == 0)
             writeblock(currblock, openfiles_table[fd].buffer);
     }
-    return cont;
+    return cont; // Regresa la cantidad de bytes escritos
 }
 
 int vdread(int fd, char *buffer, int bytes) {
+    int currblock, currinode, cont = 0, sector, result;
+    unsigned short* currptr;
 
+    checkSecboot(&sbp);
+    unsigned char inicio_nodos_i = checkiNodesMap(&sbp, inodesmap);
+    checkOpenFilesTable();
+
+    //Si no esta abierto regresa error
+    if (openfiles_table[fd].inuse == 0)
+        return (-1);
+
+    currinode = openfiles_table[fd].inode;
+
+    printf("inode for the file: %d\n", currinode);
+
+    // Copiar byte por byte del buffer del archivo, al buffer
+    // que recibe como argumento
+    while (cont < bytes) {
+        // Obtener la direccion de donde esta el bloque
+        // correspondiente a la posicion actual
+        currptr = currpostoptr(fd);
+        printf("currptr for the block: %p\n", currptr);
+
+        if (currptr == NULL)
+            return (-1);
+
+        // Cual es el bloque del que vamos a leer
+        currblock = *currptr;
+
+        printf("block for the file: %d\n", currblock);
+
+        // Si el bloque es 0, no tiene datos
+        if (currblock != 0) {
+            // Si el bloque de la posicion actual no esta en memoria
+            // Lee el bloque al buffer del archivo
+            if (openfiles_table[fd].currbloqueenmemoria != currblock) {
+                // Leer el bloque actual hacia el buffer que
+                // esta en la tabla de archivos abiertos
+                readblock(currblock, openfiles_table[fd].buffer);
+                printf("Buffer read from the block: %s\n", openfiles_table[fd].buffer);
+                // Actualizar en la taba de archivos abiertos
+                // el bloque actual
+                openfiles_table[fd].currbloqueenmemoria = currblock;
+            }
+        } else {
+            return (-1);
+        }
+
+        // Copia el caracter al buffer
+        buffer[cont] =
+        openfiles_table[fd].buffer[openfiles_table[fd].currpos % (512*2)];
+
+        // Incrementa la posicion actual del cursor
+        openfiles_table[fd].currpos++;
+
+        // Incrementa el contador
+        cont++;
+
+        // Si la posicion es mayor que el tamaño del archivo
+        if (openfiles_table[fd].currpos > inode_table[currinode].size)
+            // Regresamos los bytes leidos, para evitar accesar
+            // a posiciones no validas
+            return cont;
+    }
+
+    return cont; // Regresa la cantidad de bytes leidos
 }
 
 int vdclose(int fd) {
-    int currblock = 0;
+    int currblock = 0, sector = 0;
     unsigned short* currptr;
+
+    checkSecboot(&sbp);
+    unsigned char inicio_nodos_i = checkiNodesMap(&sbp, inodesmap);
     checkOpenFilesTable();
 
     // Si el archivo no esta abierto
     if (!openfiles_table[fd].inuse) {
         return (-1);
     }
+
+    int currinode = openfiles_table[fd].inode;
 
     currptr = currpostoptr(fd);
     currblock = *currptr;
@@ -259,6 +348,11 @@ int vdclose(int fd) {
     if (openfiles_table[fd].currpos % (512*2) != 0) {
         writeblock(currblock, openfiles_table[fd].buffer);
     }
+
+    // Escribir el sector de la tabla de nodos i en el disco
+    sector = currinode / 8;
+    vdwriteseclog(inicio_nodos_i + sector,
+                           (char *) &inode_table[sector * 8]);
 
     openfiles_table[fd].inuse = 0;
 
@@ -291,17 +385,4 @@ int vdopen(char *filename, unsigned short mode) {
     openfiles_table[i].openMode = mode;
 
     return i; // Es el fd del archivo
-}
-
-int main(int argc, char const *argv[]) {
-    // int fd = vdcreat("CHUCHITO_FILE2", 7);
-    // printf("File in use status: %d\n",openfiles_table[fd].inuse);
-    //
-    // char* buffer = "CHUCHITO 2, FILE VERSION!";
-    // printf("%d\n",vdwrite(fd, buffer, strlen(buffer)));
-    //
-    // vdclose(fd);
-    // printf("File in use status: %d\n",openfiles_table[fd].inuse);
-
-    return 0;
 }

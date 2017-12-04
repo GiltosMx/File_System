@@ -1,11 +1,16 @@
 #include <stdio.h>
+#include "file_management.h"
 
-struct PRUEBA {
-	unsigned char x[5];
-	unsigned char y;
-};
+int main(int argc, char const *argv[]) {
+    char* writeBuffer = "CONTENIDO DEL ARCHIVO PARA PROBAR.";
+    char readBuffer[1024];
+    int fd = vdcreat("ARCHIVO_PRUEBA", 9);
 
-int main()
-{
-	printf("Tamaño de prueba = %ld\n",sizeof(struct PRUEBA));
+    vdwrite(fd, writeBuffer, strlen(writeBuffer));
+    vdclose(fd);
+
+    readblock(2, readBuffer);
+    printf("read buffer: %s\n", readBuffer);
+
+    return 0;
 }

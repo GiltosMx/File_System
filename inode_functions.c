@@ -10,6 +10,7 @@ unsigned char checkiNodesTable(struct SECBOOTPART* sbp, struct INODE inode_table
         if(!vdreadseclog(sec_tabla_nodos_i + i, (char *) &inode_table[i * 8]))
             printf("LA TABLA DE NODOS I NO ESTA EN MEMORIA\n");
     }
+
     return sec_tabla_nodos_i;
 }
 
